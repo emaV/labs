@@ -24,9 +24,16 @@ function getToken(user, pass) {
   registerToken(secrets, user);
 }
 
+/**
+ * GET https://one.ubuntu.com/oauth/sso-finished-so-get-tokens/<email address>
+ * Tell Ubuntu One about the newly created SSO token. Email address must be
+ * URL-encoded (so first.last%40example.com). This request must be OAuth-signed
+ * with the token itself.
+ * https://one.ubuntu.com/developer/account_admin/issue_tokens/cloud#methods
+ */
 function registerToken(secrets, user) {
-  var url = "https://one.ubuntu.com/oauth/sso-finished-so-get-tokens/" + user;
-  return oAuthRequest(url,secrets);
+  var url = "https://one.ubuntu.com/oauth/sso-finished-so-get-tokens/" + encodeURIComponent(user);
+  return oAuthRequest(url, secrets);
 /*
     var xhr = oAuthRequest(url,secrets);
     xhr.onreadystatechange = function() {
