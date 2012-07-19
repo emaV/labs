@@ -21,3 +21,6 @@ The code is mostly done in Qt Quick so hopefully it can be easily migrated to Sy
 http://derek.io/blog/2010/how-to-secure-oauth-in-javascript/
 http://developer.yahoo.com/yql/guide/yql-execute-examples.html#yql-execute-example-oauth-netflix
 http://developer.yahoo.com/yql/guide/yql-javascript-objects.html#rest_methods-parseJson
+
+Ubuntu One Oauth login from PHP
+http://askubuntu.com/questions/54185/ubuntu-one-oauth-login-from-php
