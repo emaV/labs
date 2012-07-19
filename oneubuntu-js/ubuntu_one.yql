@@ -25,9 +25,7 @@
 y.include("http://oauth.googlecode.com/svn/code/javascript/oauth.js");
 y.include("http://oauth.googlecode.com/svn/code/javascript/sha1.js");
 
-
-function getToken(user, pass) {
-  var token_name = "Ubuntu One @test";
+function getToken(user, pass, token_name) {
   var url = "https://login.ubuntu.com/api/1.0/authentications";
   var uri = url + "?ws.op=authenticate&token_name=" + encodeURIComponent(token_name);
   var header_auth = 'Basic ' + y.crypto.encodeBase64(user + ":" + pass);
@@ -35,11 +33,12 @@ function getToken(user, pass) {
   // Get authentication
   var resp = y.rest(uri).header('Accept', 'application/xml').header('Authorization', header_auth).get().response;
 
+  // cast to string
   var secrets = {
-    consumerKey: resp.consumer_key,
-    consumerSecret: resp.consumer_secret,
-    token: resp.token,
-    tokenSecret: resp.token_secret
+    consumerKey: String(resp.consumer_key),
+    consumerSecret: String(resp.consumer_secret),
+    token: String(resp.token),
+    tokenSecret: String(resp.token_secret)
   };
 
   return secrets;
@@ -55,52 +54,51 @@ function registerToken(secrets, user) {
 
 function oAuthRequest(url, secrets, method, range) {
 
-  var accessor = {
-      consumerKey: secrets.consumerKey,
-      consumerSecret: secrets.consumerSecret,
-      token: secrets.token,
-      tokenSecret: secrets.tokenSecret
-  };
   if(!method) method = "GET";
+
   var message = {
-      action: url,
-      method: method,
-      parameters: [
-          ["oauth_consumer_key", accessor.consumerKey],
-          ["oauth_token", accessor.token],
-          ["oauth_version", "1.0"]
-      ]
+    action: url,
+    method: method,
+    parameters: [
+      ["oauth_consumer_key", secrets.consumerKey],
+      ["oauth_token", secrets.token],
+      ["oauth_version","1.0"]
+    ]
   };
 
   OAuth.setTimestampAndNonce(message);
-  OAuth.SignatureMethod.sign(message, accessor);
+  OAuth.SignatureMethod.sign(message, secrets);
   var auth = OAuth.getAuthorizationHeader("", message.parameters);
-            /*
+
 y.log("oAuthRequest - url: " + url);
-y.log("oAuthRequest - accessor"); y.log(accessor);
 y.log("oAuthRequest - message"); y.log(message);
 y.log("oAuthRequest - auth"); y.log(auth);
-            */
 
   var resp = y.rest(url).header('Authorization', auth).get().response;
 
-y.log("oAuthRequest - resp: "); y.log(resp);
+y.log("oAuthRequest (" + url + ") - resp: "); y.log(resp);
 
   return resp;
 
 }
 
-var secrets =  getToken(email, pwd);
-y.log("secrets"); y.log(secrets);
+// Main
+var OAuth;
+var token_name = "Ubuntu One @test";
+var secrets =  getToken(email, pwd, token_name);
+//y.log("secrets"); y.log(secrets);
 
 var reg = registerToken(secrets, email);
-y.log("registerToken(" + email + ")"); y.log(reg);
+//y.log("registerToken(" + email + ")"); y.log(reg);
 
-var url = "https://one.ubuntu.com/api/account/";
 
-resp = oAuthRequest(url, secrets);
+var APIurl = "https://one.ubuntu.com/api/account/";
+resp = oAuthRequest(APIurl, secrets);
+y.log("resp AuthRequest - url: " + APIurl); y.log(resp);
 
-y.log("resp AuthRequest - url: " + url); y.log(resp);
+var APIurl = "https://one.ubuntu.com/api/file_storage/v1";
+resp = oAuthRequest(APIurl, secrets);
+y.log("resp AuthRequest - url: " + APIurl); y.log(resp);
 
 response.object = <item>
   <url>zut</url>
