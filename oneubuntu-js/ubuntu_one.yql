@@ -20,221 +20,95 @@
           </inputs>
           <execute><![CDATA[
 
-            
+
 // Include the OAuth libraries from oauth.net
 y.include("http://oauth.googlecode.com/svn/code/javascript/oauth.js");
 y.include("http://oauth.googlecode.com/svn/code/javascript/sha1.js");
 
-var token_name = "Ubuntu One @test";
-var url = "https://login.ubuntu.com/api/1.0/authentications";
-var uri = url + "?ws.op=authenticate&token_name=" + encodeURIComponent(token_name);
-var header_auth = 'Basic ' + base64_encode(email + ':' + pwd);
 
-// Get authentication
-var secrets = y.rest(uri).header('Accept', 'application/xml').header('Authorization', header_auth).get().response;
-y.log(secrets);
+function getToken(user, pass) {
+  var token_name = "Ubuntu One @test";
+  var url = "https://login.ubuntu.com/api/1.0/authentications";
+  var uri = url + "?ws.op=authenticate&token_name=" + encodeURIComponent(token_name);
+  var header_auth = 'Basic ' + y.crypto.encodeBase64(user + ":" + pass);
 
-var name = secrets.name;
+  // Get authentication
+  var resp = y.rest(uri).header('Accept', 'application/xml').header('Authorization', header_auth).get().response;
 
-// Tell Ubuntu One about the new token.
-// https://garage.maemo.org/plugins/ggit/browse.php/?p=ubi;a=commitdiff;h=9258f43ecdca38297659820679a07b3f21fe6ffd
-var get_tokens_url = 'https://one.ubuntu.com/oauth/sso-finished-so-get-tokens/';
+  var secrets = {
+    consumerKey: resp.consumer_key,
+    consumerSecret: resp.consumer_secret,
+    token: resp.token,
+    tokenSecret: resp.token_secret
+  };
 
-var accessor = {
-  consumerKey: secrets.consumer_key,
-  consumerSecret: secrets.consumer_secret,
-  token: secrets.token,
-  tokenSecret: secrets.secret
-};
-            
-var message = {
-  action: get_tokens_url + email,
-  method: "GET",
-  parameters: [
-    ["oauth_consumer_key",accessor.consumerKey],
-    ["oauth_token",accessor.token],
-    ["oauth_version","1.0"]
-  ]
-};
-
-OAuth.setTimestampAndNonce(message);
-OAuth.SignatureMethod.sign(message,accessor);
-var auth = OAuth.getAuthorizationHeader("",message.parameters);
-            
-// Get authentication
-var get_tokens_response = y.rest(get_tokens_url).header('Authorization', auth).get().response;
-            
-    
-y.log(get_tokens_response);            
-            
-            
-            
-            /*            
-            """Aquire an OAuth access token for the given user."""
-    # Issue a new access token for the user.
-    request = urllib2.Request(
-        'https://login.ubuntu.com/api/1.0/authentications?' +
-        urllib.urlencode({'ws.op': 'authenticate', 'token_name': description}))
-    request.add_header('Accept', 'application/json')
-    request.add_header('Authorization', 'Basic %s' % base64.b64encode(
-        '%s:%s' % (email_address, password)))
-    try:
-        response = urllib2.urlopen(request)
-    except urllib2.HTTPError, exc:
-        if exc.code == 401: # Unauthorized
-            raise Unauthorized("Bad email address or password")
-        else:
-            raise
-    data = json.load(response)
-    consumer = oauth2.Consumer(data['consumer_key'], data['consumer_secret'])
-    token = oauth2.Token(data['token'], data['token_secret'])
-
-    # Tell Ubuntu One about the new token.
-    get_tokens_url = (
-        'https://one.ubuntu.com/oauth/sso-finished-so-get-tokens/')
-    oauth_request = oauth2.Request.from_consumer_and_token(
-        consumer, token, 'GET', get_tokens_url)
-    oauth_request.sign_request(
-        oauth2.SignatureMethod_PLAINTEXT(), consumer, token)
-    request = urllib2.Request(get_tokens_url)
-    for header, value in oauth_request.to_header().items():
-        request.add_header(header, value)
-    response = urllib2.urlopen(request)
-
-    return consumer, token
-            */
-            
-            
-// Collect all the parameters
-var encodedurl = request.url;
-            
-cks = "hammertime%26";
-ck = "ubuntuone";
-var accessor = { consumerSecret: cks, tokenSecret: ""};
-var message = { action: encodedurl, method: "GET", parameters: [["oauth_consumer_key",ck],["oauth_version","1.0"]]};
-
-OAuth.setTimestampAndNonce(message);
-
-// Sign the request
-OAuth.SignatureMethod.sign(message, accessor);
-var server_auth = "one.ubuntu.com"
-try {
-   // get the content from service along with the OAuth header, and return the result back out
-   response.object = request.contentType('application/xml').header("Authorization", OAuth.getAuthorizationHeader(server_auth, message.parameters)).get().response;
-} catch(err) {
-   response.object = {'result':'failure', 'error': err};
+  return secrets;
 }
 
-            
-            
-function base64_encode (data) {
-    // Encodes string using MIME base64 algorithm 
-    // http://phpjs.org/functions/base64_encode:358
-    // 
-    // version: 1109.2015
-    // discuss at: http://phpjs.org/functions/base64_encode
-    // +   original by: Tyler Akins (http://rumkin.com)
-    // +   improved by: Bayron Guevara
-    // +   improved by: Thunder.m
-    // +   improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
-    // +   bugfixed by: Pellentesque Malesuada
-    // +   improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
-    // +   improved by: Rafał Kukawski (http://kukawski.pl)
-    // -    depends on: utf8_encode
-    // *     example 1: base64_encode('Kevin van Zonneveld');
-    // *     returns 1: 'S2V2aW4gdmFuIFpvbm5ldmVsZA=='
-    // mozilla has this native
-    // - but breaks in 2.0.0.12!
-    //if (typeof this.window['atob'] == 'function') {
-    //    return atob(data);
-    //}
-    var b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-    var o1, o2, o3, h1, h2, h3, h4, bits, i = 0,
-        ac = 0,
-        enc = "",
-        tmp_arr = [];
- 
-    if (!data) {
-        return data;     
-    }
- 
-    data = this.utf8_encode(data + '');
- 
-    do { // pack three octets into four hexets
-        o1 = data.charCodeAt(i++);
-        o2 = data.charCodeAt(i++);
-        o3 = data.charCodeAt(i++);
- 
-        bits = o1 << 16 | o2 << 8 | o3;
- 
-        h1 = bits >> 18 & 0x3f;
-        h2 = bits >> 12 & 0x3f;
-        h3 = bits >> 6 & 0x3f;
-        h4 = bits & 0x3f;
- 
-        // use hexets to index into b64, and append result to encoded string
-        tmp_arr[ac++] = b64.charAt(h1) + b64.charAt(h2) + b64.charAt(h3) + b64.charAt(h4);
-    } while (i < data.length);
- 
-    enc = tmp_arr.join('');
-    
-    var r = data.length % 3;
-    
-    return (r ? enc.slice(0, r - 3) : enc) + '==='.slice(r || 3);
-}            
+function registerToken(secrets, user) {
+  var url = "https://one.ubuntu.com/oauth/sso-finished-so-get-tokens/" + encodeURIComponent(user);
+  var url = "https://one.ubuntu.com/oauth/sso-finished-so-get-tokens/" + user;
+  reg = oAuthRequest(url, secrets);
 
-function utf8_encode (argString) {
-    // Encodes an ISO-8859-1 string to UTF-8  
-    // 
-    // version: 1109.2015
-    // discuss at: http://phpjs.org/functions/utf8_encode
-    // +   original by: Webtoolkit.info (http://www.webtoolkit.info/)
-    // +   improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
-    // +   improved by: sowberry
-    // +    tweaked by: Jack
-    // +   bugfixed by: Onno Marsman
-    // +   improved by: Yves Sucaet
-    // +   bugfixed by: Onno Marsman
-    // +   bugfixed by: Ulrich
-    // +   bugfixed by: Rafal Kukawski
-    // *     example 1: utf8_encode('Kevin van Zonneveld');
-    // *     returns 1: 'Kevin van Zonneveld'
-    if (argString === null || typeof argString === "undefined") {
-        return "";
-    }
- 
-    var string = (argString + ''); // .replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-    var utftext = "",
-        start, end, stringl = 0;
- 
-    start = end = 0;
-    stringl = string.length;
-    for (var n = 0; n < stringl; n++) {
-        var c1 = string.charCodeAt(n);
-        var enc = null;
- 
-        if (c1 < 128) {
-            end++;
-        } else if (c1 > 127 && c1 < 2048) {
-            enc = String.fromCharCode((c1 >> 6) | 192) + String.fromCharCode((c1 & 63) | 128);
-        } else {
-            enc = String.fromCharCode((c1 >> 12) | 224) + String.fromCharCode(((c1 >> 6) & 63) | 128) + String.fromCharCode((c1 & 63) | 128);
-        }
-        if (enc !== null) {
-            if (end > start) {
-                utftext += string.slice(start, end);
-            }
-            utftext += enc;
-            start = end = n + 1;
-        }
-    }
- 
-    if (end > start) {
-        utftext += string.slice(start, stringl);
-    }
- 
-    return utftext;
-}            
+  return reg;
+}
+
+function oAuthRequest(url, secrets, method, range) {
+
+  var accessor = {
+      consumerKey: secrets.consumerKey,
+      consumerSecret: secrets.consumerSecret,
+      token: secrets.token,
+      tokenSecret: secrets.tokenSecret
+  };
+  if(!method) method = "GET";
+  var message = {
+      action: url,
+      method: method,
+      parameters: [
+          ["oauth_consumer_key", accessor.consumerKey],
+          ["oauth_token", accessor.token],
+          ["oauth_version", "1.0"]
+      ]
+  };
+
+  OAuth.setTimestampAndNonce(message);
+  OAuth.SignatureMethod.sign(message, accessor);
+  var auth = OAuth.getAuthorizationHeader("", message.parameters);
+            /*
+y.log("oAuthRequest - url: " + url);
+y.log("oAuthRequest - accessor"); y.log(accessor);
+y.log("oAuthRequest - message"); y.log(message);
+y.log("oAuthRequest - auth"); y.log(auth);
+            */
+
+  var resp = y.rest(url).header('Authorization', auth).get().response;
+
+y.log("oAuthRequest - resp: "); y.log(resp);
+
+  return resp;
+
+}
+
+var secrets =  getToken(email, pwd);
+y.log("secrets"); y.log(secrets);
+
+var reg = registerToken(secrets, email);
+y.log("registerToken(" + email + ")"); y.log(reg);
+
+var url = "https://one.ubuntu.com/api/account/";
+
+resp = oAuthRequest(url, secrets);
+
+y.log("resp AuthRequest - url: " + url); y.log(resp);
+
+response.object = <item>
+  <url>zut</url>
+  <a>a</a>
+  <b>b</b>
+</item>;
+y.exit;
+
           ]]></execute>
         </select>
       </bindings>
