@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" https="true">
     <meta>
-        <author>EQ</author>
-        <documentationURL>http://developer.netflix.com/docs/REST_API_Reference#0_52696</documentationURL>
+        <author>Emanuele Quinto</author>
+        <documentationURL>https://github.com/emaV/labs/tree/master/oneubuntu-js</documentationURL>
     </meta>
       <bindings>
         <select itemPath="" produces="XML" >
@@ -45,11 +45,8 @@ function getToken(user, pass, token_name) {
 }
 
 function registerToken(secrets, user) {
-  var url = "https://one.ubuntu.com/oauth/sso-finished-so-get-tokens/" + encodeURIComponent(user);
   var url = "https://one.ubuntu.com/oauth/sso-finished-so-get-tokens/" + user;
-  reg = oAuthRequest(url, secrets);
-
-  return reg;
+  return oAuthRequest(url, secrets);
 }
 
 function oAuthRequest(url, secrets, method, range) {
@@ -70,41 +67,27 @@ function oAuthRequest(url, secrets, method, range) {
   OAuth.SignatureMethod.sign(message, secrets);
   var auth = OAuth.getAuthorizationHeader("", message.parameters);
 
-y.log("oAuthRequest - url: " + url);
-y.log("oAuthRequest - message"); y.log(message);
-y.log("oAuthRequest - auth"); y.log(auth);
-
-  var resp = y.rest(url).header('Authorization', auth).get().response;
-
-y.log("oAuthRequest (" + url + ") - resp: "); y.log(resp);
-
-  return resp;
+  return y.rest(url).header('Authorization', auth).get().response;
 
 }
 
-// Main
+/**
+ * Main
+ */
 var OAuth;
-var token_name = "Ubuntu One @test";
+
+// Keep a space after '@'
+var token_name = "Ubuntu One @ test";
+
 var secrets =  getToken(email, pwd, token_name);
-//y.log("secrets"); y.log(secrets);
 
 var reg = registerToken(secrets, email);
-//y.log("registerToken(" + email + ")"); y.log(reg);
-
 
 var APIurl = "https://one.ubuntu.com/api/account/";
 resp = oAuthRequest(APIurl, secrets);
-y.log("resp AuthRequest - url: " + APIurl); y.log(resp);
 
-var APIurl = "https://one.ubuntu.com/api/file_storage/v1";
-resp = oAuthRequest(APIurl, secrets);
-y.log("resp AuthRequest - url: " + APIurl); y.log(resp);
+response.object = resp
 
-response.object = <item>
-  <url>zut</url>
-  <a>a</a>
-  <b>b</b>
-</item>;
 y.exit;
 
           ]]></execute>
