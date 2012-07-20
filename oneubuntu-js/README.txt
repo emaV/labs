@@ -1,6 +1,7 @@
 one.ubuntu - YQL javascript connector
 
 == SUMMARY ==
+
 A simple YQL Open Data Tables generated with JavaScript from Ubuntu One data.
 
 Authentication with oAuth. Basically:
@@ -9,6 +10,28 @@ Authentication with oAuth. Basically:
 2) Tell Ubuntu One about that new token.
 3) Use that new token to sign a request to the Ubuntu One files API.
 
+
+== USAGE ==
+
+Use ubuntu_one.yql to define your table.
+
+
+== NOTES/ISSUES ==
+
+Basically works. It try to reauthenticate the table any time so you end up with a lot of authrize token.
+Hopefully you can clean up from https://one.ubuntu.com/account/
+
+
+== CONTENT ==
+
+* ubuntuone-sso-login.py
+  Phyton client from Roman Yepishev <roman.yepishev@canonical.com>
+
+* ubuntu_one.yql
+  YQL table definition. USE this!
+
+* ul.js.autosave
+  Javascript code used in Maemo
 
 
 == REFERENCES ==
@@ -43,3 +66,10 @@ http://developer.yahoo.com/yql/guide/yql-execute-examples.html#yql-execute-examp
 http://developer.yahoo.com/yql/guide/yql-javascript-objects.html#rest_methods-parseJson
 
 
+== CONTACT ==
+Emanuele Quinto emanuele.quinto@gmail.com
+
+
+== THANKS ==
+
+Stuart Langridge @sil
